@@ -1,0 +1,27 @@
+
+
+mongodbdata:
+    restart: always
+    image: busybox:latest
+    volumes:
+        - ./data/mongodbdata:/data
+
+mongodb:
+    restart: always
+    image: tutum/mongodb:latest
+    environment:
+        - AUTH=no
+    expose:
+        - "27017"
+        - "28017"
+    volumes_from:
+        - mongodbdata
+atp:
+    restart: always
+    image: dcslab/atp:1.0.0
+    links:
+        - mongodb:mongosrv
+    environment:
+        - MONGO_PORT_27017_TCP_ADDR=mongosrv
+    ports:
+        - "8080:8080"

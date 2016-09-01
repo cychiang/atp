@@ -1,0 +1,28 @@
+{
+  "name" : "atp",
+  "description" : "Anonymous Testing Platform (ATP) - A browser-based distributed testing service platform",
+  "version" : "1.0.0",
+  "private" : true,
+  "engines" : {
+    "node" : ">= 0.10.24"
+  },
+  "dependencies" : {
+    "express" : "3.1.0",
+    "ws" : "latest",
+    "mongodb" : "1.4.38"
+  },
+  "author" : "Henry Hung Yu Chen",
+  "contributors" : [
+    {
+      "name" : "Henry Hung Yu Chen",
+      "email" : "soulinlove541@gmail.com"
+    }
+  ],
+  "keywords": [
+    "web service testing",
+    "TPaaS",
+    "TaaS",
+    "WebRTC"
+  ],
+  "license": "MIT"
+}

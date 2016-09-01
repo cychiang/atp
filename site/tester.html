@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Anonymous Testing Platform</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <script src="http://code.jquery.com/jquery-2.0.3.min.js"></script>
+    <script src="https://www.google.com/jsapi"></script>
+    <link href="bootstrap.css" rel="stylesheet">
+    <link href="style.css" rel="stylesheet">
+
+    <script>
+        if(!sessionStorage.selfId) window.location.href = 'index.html';
+
+        var atp,
+            atpUI;
+        
+        // Load the Visualization API and the piechart package.
+        google.load('visualization', '1.0', {'packages':['corechart','table','geochart']});
+
+        function atpHTTPReq(btn) {
+            $(btn).button('loading');
+            setTimeout(function () {
+                $(btn).button('reset');
+            },500);
+
+            $.ajax({
+                url: $('#http-req-task-url').val()+$('#http-req-task-path').val()
+            }).done(function () {
+                atp.sendTestRequest({
+                    'event': 'test_request',
+                    'test': {
+                        'conf': {
+                            'clientid': atp.selfId,
+                            'type': 'HTTP Request Test',
+                            'label': $('#http-req-conf-label').val(),
+                            'mode': $('#http-req-conf-mode').val(),
+                            'allowMixMode': $('#http-req-conf-allow-mix').val(),
+                            'nodeNum': $('#http-req-conf-node-num').val(),
+                            //'tpn': parseInt($('#http-req-conf-tpn').val()),// number of test per node
+                            'tpn': 1,
+                            'activatePeriod': $('#http-req-conf-act-period').val(),
+                            'loopCount': $('#http-req-conf-loop-count').val(),
+                            'timer': { // uniform random timer
+                                'delayBase': parseInt($('#http-req-conf-delay-base').val()),
+                                'delayOffset': parseInt($('#http-req-conf-delay-offset').val())
+                            },
+                            'criteria': atpUI.parseCriteria($('#HTTPReq .criteria:checked')),
+                            'startTime': (ServerDate.now())+5000
+                        },
+                        'taskList': atpUI.parseTaskList('#http-req-task-list')
+                    }
+                });
+            }).fail(function () {
+                $('#errorModal .modal-body')[0].innerHTML = '<p>The target web service does not support CORS.</p>' + 
+                    '<p>Please make sure that you have the permission to test the given web service, and enable CORS support.</p>';
+                $('#errorModal').modal('show');
+            });
+        }
+
+        function logout() {
+            atpUI.logout();
+            atp.stopService();
+            atp = null;
+            sessionStorage.removeItem('role');
+            window.location.href = 'index.html';
+        }
+
+        $(document).ready(function () {
+            atp = new Atp();
+            atpUI = new AtpUI();
+            sessionStorage.setItem('currentTab', '#Index');
+            sessionStorage.setItem('role', 'tester');
+            
+            atp.notifyUI = atpUI.processNotification;
+            atpUI.login();
+
+            if(atp) $('#service-status').text('Online').addClass('btn-danger');
+
+            setInterval(function () {
+                if(atp == null) $('#service-status').text(' Offline ').removeClass('btn-danger');
+            },300000);
+        });
+    </script>
+</head>
+
+<body>
+    <a class="sr-only" href="#content">Skip to main content</a>
+    <!-- Fixed navbar -->
+    <header class="navbar navbar-inverse navbar-fixed-top " role="banner">
+        <div class="container">
+            <div class="navbar-header">
+                <a class="navbar-brand" href="#Index" data-toggle="tab">ATP</a>
+                <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+                    <span class="sr-only">Toggle navigation</span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </button>
+            </div>
+            <div class="collapse navbar-collapse bs-navbar-collapse" role="navigation">
+                <ul class="nav navbar-nav" role="tablist">
+                    <li class="dropdown hidden" role="presentation">
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown">Test Go! <b class="caret"></b></a>
+                        <ul class="dropdown-menu" role="tablist">
+                            <li role="presentation"><a href="#HTTPReq" data-toggle="tab" role="tab">HTTP Request</a></li>
+                        </ul>
+                    </li>
+                    <li class="hidden" role="presentation"><a href="#Dashboard" data-toggle="tab" role="tab">Dashboard <span id="unread-result" class="badge"></span></a></li>
+                </ul>
+                <ul class="nav navbar-nav navbar-right" role="tablist">
+                    <li><a href="#" data-toggle="modal" data-target="#loginModal">Login <span class="glyphicon glyphicon-log-in"></span></a></li>
+                    <li class="hidden"><a href="#Index" onclick="logout();" data-toggle="tab" role="tab">Logout <span class="glyphicon glyphicon-log-out"></span></a></li>
+                    <li class="hidden"><a href="#" data-toggle="tab" role="tab"><button type="button" id="service-status" class="btn btn-xs">Connecting</button></a></li>
+                </ul>
+            </div>
+        </div>
+    </header>
+
+    <div class="tab-content wrapper" role="main">
+        <!-- Welcome Tab -->
+        <div class="tab-pane anchor fade in active" id="Index" role="tabpanel">
+            <div class="container">
+                <h1>Welcome to Anonymous Testing Platform</h1>
+            </div>
+        </div>
+
+        <!-- HTTP Request Test Tab -->
+        <div class="tab-pane anchor fade" id="HTTPReq" role="tabpanel">
+            <div class="container">
+                <form id="http-req-test-form">
+                    <fieldset class="col input-group">
+                        <legend class="well legend-title">HTTP Request Test</legend>
+                        <div class="panel panel-default">
+                            <div class="panel-heading panel-heading-highlight"><span class="glyphicon glyphicon-cog"></span> Configuration</div>
+                            <div class="panel-body">
+                                <label for="http-req-conf-label">Test Label <input type="text" id="http-req-conf-label" class="form-control" value="my Test"></label><br>
+                                <label for="http-req-conf-mode">Mode
+                                    <select id="http-req-conf-mode" class="form-control" onchange="atpUI.toggleMixModeVisibility('http-req-conf-allow-mix');"> 
+                                        <option role="option" value="indirect" selected="selected">Indirect</option>
+                                        <option role="option" value="direct">Direct</option>
+                                    </select>
+                                </label>
+                                <label for="http-req-conf-node-num">Node Number <input type="number" id="http-req-conf-node-num" class="form-control" value="3"></label>
+                                <!-- <label for="http-req-conf-tpn">Workers per Node <input type="number" id="http-req-conf-tpn" class="form-control" value="1"></label> -->
+                                <!-- <label for="http-req-conf-tpn">Workers per Node
+                                    <select id="http-req-conf-tpn" class="form-control">
+                                        <option role="option" value="1" selected="selected">1</option>
+                                        <option role="option" value="2">2</option>
+                                    </select>
+                                </label> -->
+                                <label class="hidden" for="http-req-conf-allow-mix">Allow Mix Mode
+                                    <select id="http-req-conf-allow-mix" class="form-control">
+                                        <option role="option" value="true">True</option>
+                                        <option role="option" value="false" selected="selected">False</option>
+                                    </select>
+                                </label>
+                                <hr>
+                                <label for="http-req-conf-loop-count">Loop Count <input type="number" id="http-req-conf-loop-count" class="form-control" value="10"></label>
+                                <label class="hidden" for="http-req-conf-act-period">Activate Period (s) <input type="number" id="http-req-conf-act-period" class="form-control" value="2"></label>
+                                <br>
+                                <label for="http-req-conf-delay-base">Delay Base (ms) <input type="number" id="http-req-conf-delay-base" class="form-control" value="5000"></label>
+                                <label for="http-req-conf-delay-offset">Delay Offset (ms) <input type="number" id="http-req-conf-delay-offset" class="form-control" value="3000"></label>
+                            </div>
+                        </div>
+
+                        <div id="http-req-task-list" class="panel panel-default">
+                            <div class="panel-heading panel-heading-highlight"><span class="glyphicon glyphicon-tasks"></span> Task List</div>
+                            <div class="panel-body">
+                                <div class="btn-atp">
+                                    <button type="button" class="btn btn-block btn-warning" role="button" onclick="atpUI.addTask($(this));"><span class="glyphicon glyphicon-plus"> Add Task</span></button>
+                                </div>
+                                
+                                <div>
+                                    <hr>
+                                    <div class="row vertical-container">
+                                        <div class="col-md-1">
+                                            <button type="button" class="btn btn-danger" onclick="atpUI.removeTask($(this))"><span class="glyphicon glyphicon-remove-circle"></span></button>
+                                        </div>
+                                        <div class="col-md-11">
+                                            <label for="http-req-task-url">Url <input type="text" id="http-req-task-url" class="form-control" style="min-width: 300px;" value="http://updates.html5rocks.com"></label>
+                                            <br>
+                                            <label for="http-req-task-method" >HTTP Method
+                                                <select id="http-req-task-method" class="form-control">
+                                                    <option value="GET" selected="selected">GET</option>
+                                                    <option value="POST">POST</option>
+                                                </select>
+                                            </label>
+                                            <label for="http-req-task-path">Path <input type="text" id="http-req-task-path" class="form-control" value="/2014/02/The-Yeoman-Monthly-Digest-3"></label>
+                                            <label for="http-req-task-args">Args <input type="text" id="http-req-task-args" class="form-control" value=""></label>
+                                        </div>
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+
+                        <div class="panel panel-default">
+                            <div class="panel-heading panel-heading-highlight"><span class="glyphicon glyphicon-globe"></span> Test Node Requirement</div>
+                            <div class="panel-body">
+                                <div>
+                                    <h5 class="alert alert-warning">
+                                        <span class="glyphicon glyphicon-exclamation-sign"></span>
+                                        If you submit a request without ticking any check-boxes, ATP will randomly select nodes from all available browsers around the world.<br>
+                                        <span class="glyphicon glyphicon-exclamation-sign"></span>
+                                        Internet Explorer currently <strong>does not</strong> support "Direct" test mode.<br>
+                                    </h5>
+                                </div>
+                                <div class="list-horizontal">
+                                    <ul class="list-group">
+                                        <li>
+                                            <label>Browser</label>
+                                            <ul class="list-group" role="listbox">
+                                                <li class="list-group-item" role="listitem"><label class="checkbox-inline"><input type="checkbox" id="browser" class="criteria" role="checkbox" value="Chrome">Chrome</label></li>
+                                                <li class="list-group-item" role="listitem"><label class="checkbox-inline"><input type="checkbox" id="browser" class="criteria" role="checkbox" value="Firefox">Firefox</label></li>
+                                                <li class="list-group-item" role="listitem"><label class="checkbox-inline"><input type="checkbox" id="browser" class="criteria" role="checkbox" value="Opera">Opera</label></li>
+                                                <li class="list-group-item" role="listitem"><label class="checkbox-inline"><input type="checkbox" id="browser" class="criteria" role="checkbox" value="IE">Internet Explorer</label></li>
+                                            </ul>
+                                        </li>
+                                        <li>
+                                            <label>Test Node Location</label>
+                                            <ul class="list-group" role="listbox">
+                                                <li class="list-group-item" role="listitem"><label class="checkbox-inline"><input type="checkbox" id="countryCode" class="criteria" role="checkbox" value="TW">Taiwan</label></li>
+                                                <li class="list-group-item" role="listitem"><label class="checkbox-inline"><input type="checkbox" id="countryCode" class="criteria" role="checkbox" value="Taipei">Taipei</label></li>
+                                                <li class="list-group-item" role="listitem"><label class="checkbox-inline"><input type="checkbox" id="countryCode" class="criteria" role="checkbox" value="Hsinchu">Hsinchu</label></li>
+                                                <li class="list-group-item" role="listitem"><label class="checkbox-inline"><input type="checkbox" id="countryCode" class="criteria" role="checkbox" value="US">U.S.</label></li>
+                                                <li class="list-group-item" role="listitem"><label class="checkbox-inline"><input type="checkbox" id="countryCode" class="criteria" role="checkbox" value="JP">Japan</label></li>
+                                            </ul>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="btn-atp">
+                            <button type="button" class="btn btn-lg btn-block btn-warning disabled" role="button" data-loading-text="Submitting..." onclick="atpHTTPReq(this);"><span class="glyphicon glyphicon-send"> Submit</span></button>
+                        </div>
+                    </fieldset>
+                </form>
+            </div>
+        </div>
+
+        <!-- Dashboard Tab -->
+        <div class="tab-pane anchor fade" id="Dashboard" role="tabpanel">
+            <div class="container">
+                <div class="row">
+                    <div class="col-md-3">
+                        <div class="bs-sidebar hidden-print affix-top" data-spy="affix" role="complementary">
+                            <ul id="dashboard-list" class="nav bs-sidenav">
+                                <li class="dropdown-header"><h4><span class="glyphicon glyphicon-list"></span> Dashboard</h4></li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="col-md-9" role="main">
+                        <div id="test-result" class="anchor">
+                            <div id="test-detail-list-div" class="anchor hidden">
+                                <legend class="legend-heading">Test Detail</legend>
+                                <table class="table">
+                                    <tbody>
+                                      <tr><td><b>Mode</b></td><td id="mode"></td></tr>
+                                      <tr><td><b>Node Number</b></td><td id="node-number"></td></tr>
+                                      <tr><td><b>Loop Count</b></td><td id="loop-count"></td></tr>
+                                      <tr><td><b>Delay Base and Offset</b></td><td id="delay"></td></tr>
+                                      <tr><td><b>Test Node Filter</b></td><td id="node-requirement"></td></tr>
+                                    </tbody>
+                                </table>
+                                <div class="panel panel-default">
+                                    <div class="panel-heading"><b>Task List</b></div>
+                                    <div id="task-list" class="panel-body"></div>
+                                </div>
+                                <a class="btn btn-primary" id="download-result" href="#" onclick="atpUI.exportToCSV.apply(this);"><span class="glyphicon glyphicon-cloud-download"> Download Test Result (.csv)</span></a>
+                                <hr class="hr-atp">
+                            </div>
+                            <div id="latency-chart-div" class="anchor hidden">
+                                <legend class="legend-heading">Latency</legend>
+                                <div id="latency-aggregate-table"></div>
+                                <h5 class="alert alert-info"><span class="glyphicon glyphicon-ok-circle"></span> Drag to zoom, right click to reset zoom level.</h5>
+                                <div id="latency-scatter"></div>
+                                <hr class="hr-atp">
+                            </div>
+                            <div id="response-time-chart-div" class="anchor hidden">
+                                <legend class="legend-heading">Response Time</legend>
+                                <div id="response-time-aggregate-table"></div>
+                                <h5 class="alert alert-info"><span class="glyphicon glyphicon-ok-circle"></span> Drag to zoom, right click to reset zoom level.</h5>
+                                <div id="response-time-scatter"></div>
+                                <hr class="hr-atp">
+                            </div>
+                            <div id="processing-time-chart-div" class="anchor hidden">
+                                <legend class="legend-heading">Processing Time</legend>
+                                <div id="processing-time-aggregate-table"></div>
+                                <h5 class="alert alert-info"><span class="glyphicon glyphicon-ok-circle"></span> Drag to zoom, right click to reset zoom level.</h5>
+                                <div id="processing-time-scatter"></div>
+                                <hr class="hr-atp">
+                            </div>
+                            <div id="test-node-distribution-div" class="anchor hidden">
+                                <legend class="legend-heading">Request Distribution</legend>
+                                <div id="test-node-distribution-geochart"></div>
+                                <div id="test-node-distribution-table"></div>
+                                <hr class="hr-atp">
+                            </div>
+                            <div id="result-table-div" class="anchor hidden">
+                                <legend class="legend-heading">Result Table</legend>
+                                <div id="result-table"></div>
+                                <h5 class="alert alert-info">First column represents the time-point when test node receives first byte from target server.</h5>
+                                <hr class="hr-atp">
+                            </div>
+                        </div>
+                    </div>
+                </div> 
+            </div>
+        </div>
+    </div>
+
+    <footer class="footer" role="contentinfo">
+        <div class="row">
+            <div class="col-md-1">
+                <img style="width=70px;height:70px;margin-top:10px;margin-bottom:10px;" src="nctu.gif">
+            </div>
+            <div class="col-md-6">
+                © 2014 Henry Hung Yu Chen, all rights reserved.<br>
+                Distributed Computing System Lab<br>
+                Department of Computer Science, Institute of Computer Networking<br>
+                National Chiao Tung University<br>
+            </div>
+            <div class="col-md-5">
+                <br>
+                <div style="text-align:right;">
+                    <a href="http://www.facebook.com/hungyu.chen.cs01g" target="_blank"><img src="facebook.png"></a>
+                    <a href="http://goo.gl/zhehfb" target="_blank"><img src="google+.png"></a>
+                    <a href="http://www.linkedin.com/pub/henry-hung-yu-chen/67/616/9a0" target="_blank"><img src="linkedin.png"></a>
+                    <a href="mailto:soulinlove541@gmail.com" target="_blank"><img src="mail.png"></a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Error Modal -->
+    <div class="modal fade" id="errorModal" tabindex="-1" role="dialog" aria-labelledby="errorModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true"></button>
+                    <h4 class="modal-title" id="errorModalLabel">Sorry...</h4>
+                </div>
+                <div class="modal-body"></div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="/bootstrap.js"></script>
+    <script src="/dygraph-combined.js"></script>
+    <script src="http://www.codehelper.io/api/ips/?js"></script>
+
+    <script src="/browserdetect.js"></script>
+    <script src="/serverdate.js"></script>
+    <script src="/atp.js"></script>
+    <script src="/atpui.js"></script>
+</body>
+</html>

@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Anonymous Testing Platform</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <script src="http://code.jquery.com/jquery-2.0.3.min.js"></script>
+    <link href="bootstrap.css" rel="stylesheet">
+    <link href="style.css" rel="stylesheet">
+
+    <script>
+        var atpUI;
+
+        function login(data, role) {
+            if(data.email == '' || data.password == ''){
+                alert('Incorrect email or password.');
+                return;
+            }
+
+            $.ajax({
+                type: 'POST',
+                url: '/auth/login',
+                data: data
+            }).done(function (data) {
+                if(data != 'fail' && role == 'tester'){
+                    sessionStorage.setItem('selfId', parseInt(data));
+                    window.location.href='tester.html';
+                } else if(data != 'fail' && role == 'node') {
+                    sessionStorage.setItem('selfId', parseInt(data));
+                    window.location.href='node.html';
+                } else {
+                    alert('Incorrect email or password.');
+                }
+            }).fail(function () {
+                console.log('Something wrong...please try again later.');
+            });
+        }
+
+        function register(data) {
+            if(data.email == '' || data.password == ''){
+                alert('Please enter your email address and set up password.');
+                return;
+            }
+
+            $.ajax({
+                type: 'POST',
+                url: '/auth/register',
+                data: data
+            }).done(function (data) {
+                if(data == 'success'){
+                    alert('Success, now you can log in =)');
+                } else if(data == 'dup') {
+                    alert('Oops...this email address has been used, please use another one.');
+                } else if(data == 'fail') {
+                    alert('Oops...there is something wrong, please try again later =(');
+                }
+            }).fail(function () {
+                alert('Oops...there is something wrong, please try again later =(');
+            });
+        }
+
+        $(document).ready(function () {
+            sessionStorage.clear();
+            atpUI = new AtpUI();
+        });
+    </script>
+</head>
+
+<body>
+    <a class="sr-only" href="#content">Skip to main content</a>
+    <!-- Fixed navbar -->
+    <header class="navbar navbar-inverse navbar-fixed-top " role="banner">
+        <div class="container">
+            <div class="navbar-header">
+                <a class="navbar-brand" href="#Index" data-toggle="tab">ATP</a>
+                <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+                    <span class="sr-only">Toggle navigation</span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </button>
+            </div>
+            <div class="collapse navbar-collapse bs-navbar-collapse" role="navigation">
+                <ul class="nav navbar-nav navbar-right" role="tablist">
+                    <li class="hidden"><a href="#" data-toggle="tab" role="tab"><button type="button" id="service-status" class="btn btn-xs">Connecting</button></a></li>
+                </ul>
+            </div>
+        </div>
+    </header>
+
+    <div class="tab-content wrapper" role="main">
+        <!-- Welcome Tab -->
+        <div class="tab-pane anchor fade in active" id="Index" role="tabpanel">
+            <div class="container">
+                <h1>Welcome to Anonymous Testing Platform</h1>
+                <hr>
+
+                <div>
+                    <form id="login-form" action="http://localhost:8080/auth/login" method="post">
+                        <label for="email">Email: <input type="text" id="email" name="email" class="form-control" value=""></label></br>
+                        <label for="password">Password: <input type="password" id="password" name="password" class="form-control" value=""></label>
+                    </form></br>
+                    <label>Log in as a...</label></br>
+                    <button type="button" class="btn btn-primary" data-dismiss="modal" onclick="login({email:$('#email').val(),password:$('#password').val()}, 'tester');">Tester</button>
+                    <button type="button" class="btn btn-primary" data-dismiss="modal" onclick="login({email:$('#email').val(),password:$('#password').val()}, 'node');">Test Node</button>
+                    <button type="button" id="register-button" class="btn btn-danger" onclick="register({email:$('#email').val(),password:$('#password').val()});">Register Now!</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer class="footer" role="contentinfo">
+        <div class="row">
+            <div class="col-md-1">
+                <img style="width=70px;height:70px;margin-top:10px;margin-bottom:10px;" src="nctu.gif">
+            </div>
+            <div class="col-md-6">
+                © 2014 Henry Hung Yu Chen, all rights reserved.<br>
+                Distributed Computing System Lab<br>
+                Department of Computer Science, Institute of Computer Networking<br>
+                National Chiao Tung University<br>
+            </div>
+            <div class="col-md-5">
+                <br>
+                <div style="text-align:right;">
+                    <a href="http://www.facebook.com/hungyu.chen.cs01g" target="_blank"><img src="facebook.png"></a>
+                    <a href="http://goo.gl/zhehfb" target="_blank"><img src="google+.png"></a>
+                    <a href="http://www.linkedin.com/pub/henry-hung-yu-chen/67/616/9a0" target="_blank"><img src="linkedin.png"></a>
+                    <a href="mailto:soulinlove541@gmail.com" target="_blank"><img src="mail.png"></a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="/bootstrap.js"></script>
+    <script src="http://www.codehelper.io/api/ips/?js"></script>
+    <script src="/browserdetect.js"></script>
+    <script src="/serverdate.js"></script>
+    <script src="/atpui.js"></script>
+</body>
+</html>

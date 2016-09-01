@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Anonymous Testing Platform</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <script src="http://code.jquery.com/jquery-2.0.3.min.js"></script>
+    <script src="https://www.google.com/jsapi"></script>
+    <link href="bootstrap.css" rel="stylesheet">
+    <link href="style.css" rel="stylesheet">
+
+    <script>
+        if(!sessionStorage.selfId) window.location.href = 'index.html';
+
+        var atp,
+            atpUI,
+            snake;
+        
+        // Load the Visualization API and the piechart package.
+        google.load('visualization', '1.0', {'packages':['corechart','table','geochart']});
+
+        function logout() {
+            atpUI.logout();
+            atp.stopService();
+            atp = null;
+            sessionStorage.removeItem('role');
+            window.location.href = 'index.html';
+        }
+
+        $(document).ready(function () {
+            atpUI = new AtpUI();
+            atp = new Atp();
+            atp.notifyUI = atpUI.processNotification;
+
+            sessionStorage.setItem('currentTab', '#Index');
+            sessionStorage.setItem('role', 'node');
+
+            $('[href=#Index]').trigger('click'); // TODO need to be remove
+
+            if(atp) $('#service-status').text('Online').addClass('btn-danger');
+
+            setInterval(function () {
+                if(atp && atp.serviceStatus == 'disconnected') {
+                    $('#service-status').text(' Offline ').removeClass('btn-danger');
+
+                    atpUI = new AtpUI();
+                    atp = new Atp();
+                    atp.notifyUI = atpUI.processNotification;
+
+                    sessionStorage.setItem('currentTab', '#Index');
+                    sessionStorage.setItem('role', 'node');
+
+                    $('[href=#Index]').trigger('click'); // TODO need to be remove
+
+                    if(atp) $('#service-status').text('Online').addClass('btn-danger');
+                }
+            },3*60*1000);
+
+            // Game
+            snake = new Snake();
+            $('li a[href="#G2048"]').on('shown.bs.tab', function (e) {
+                $('#G2048-iframe').focus();
+            });
+        });
+    </script>
+</head>
+
+<body>
+    <a class="sr-only" href="#content">Skip to main content</a>
+    <!-- Fixed navbar -->
+    <header class="navbar navbar-inverse navbar-fixed-top " role="banner">
+        <div class="container">
+            <div class="navbar-header">
+                <a class="navbar-brand" href="#Index" data-toggle="tab">ATP</a>
+                <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+                    <span class="sr-only">Toggle navigation</span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </button>
+            </div>
+            <div class="collapse navbar-collapse bs-navbar-collapse" role="navigation">
+                <ul class="nav navbar-nav" role="tablist">
+                    <li role="presentation"><a href="#Snake" data-toggle="tab" role="tab">Snake</a></li>
+                    <li role="presentation"><a href="#G2048" data-toggle="tab" role="tab">2048</a></li>
+                </ul>
+                <ul class="nav navbar-nav navbar-right" role="tablist">
+                    <li><a href="#" onclick="logout();" data-toggle="tab">Logout <span class="glyphicon glyphicon-log-out"></span></a></li>
+                    <li><a href="#" data-toggle="tab" role="tab"><button type="button" id="service-status" class="btn btn-xs">Connecting</button></a></li>
+                </ul>
+            </div>
+        </div>
+    </header>
+
+    <div class="tab-content wrapper" role="main">
+        <!-- Welcome Tab -->
+        <div class="tab-pane anchor fade in active" id="Index" role="tabpanel">
+            <div class="container">
+                <h1>
+                    Thank you for joining in our </br> <b>Anonymous Testing Platform (ATP)</b> Test Group.
+                </h1>
+                <hr>
+                <!-- <h4>ATP 會利用瀏覽器偵測您的所在地點，如果瀏覽器詢問是否允許提供地理資訊，請選擇「允許」以利 ATP 截取地理資訊。</h4>
+                <h4>如果右上方顯示灰色的Offline，請重新整理本頁面以重新與 ATP 建立連線。</h4>
+                <h4><b>本系統備有幾款小遊戲<del>拖累</del>娛樂大家，歡迎服用 =)。</b></h4> -->
+                <h4>ATP needs your location information. Please allow your browser to detect and provide device's location information.</h4>
+                <h4>If the status on the top-right is gray "Offline", please refresh this page to reconnect to ATP.</h4>             
+                <h4>ATP provides serveral tiny games for you. Have fun. =)</h4>
+                <h4>
+                    <span class="label label-warning"><a href="#Snake" onclick="atpUI.changeTab('#Snake');">Snake</a></span>
+                    <span class="label label-warning"><a href="#G2048" onclick="atpUI.changeTab('#G2048');">2048</a></span>
+                </h4>
+            </div>
+        </div>
+
+        <!-- Snake Tab -->
+        <div class="tab-pane anchor fade in" id="Snake" role="tabpanel">
+            <div class="container">
+                <div>
+                    <h4>Direction control: <span class="label label-info">Arrow Keys</span></h4>
+                    <h4>Play/Pause Game: <span class="label label-info">ESC</span></h4>
+                    <button type="button" class="btn btn-primary" onclick="snake.init();">Start Game</button>
+                    <button type="button" class="btn btn-primary" onclick="snake.play();">Play</button>
+                    <button type="button" class="btn btn-primary" onclick="snake.stop();">Pause</button>
+                </div>
+                <!-- Lets make a simple snake game -->
+                <canvas id="canvas" width="450" height="450"></canvas>
+            </div>
+        </div>
+
+        <!-- 2048 Tab -->
+        <div class="tab-pane anchor fade in" id="G2048" role="tabpanel">
+            <div class="container">
+                <iframe id="G2048-iframe" src="http://gabrielecirulli.github.io/2048/" frameborder="0" border="0" cellspacing="0" width="800" height="1250"></iframe>
+            </div>
+        </div>
+
+    </div>
+
+    <footer class="footer" role="contentinfo">
+        <div class="row">
+            <div class="col-md-1">
+                <img style="width=70px;height:70px;margin-top:10px;margin-bottom:10px;" src="nctu.gif">
+            </div>
+            <div class="col-md-6">
+                © 2014 Henry Hung Yu Chen, all rights reserved.<br>
+                Distributed Computing System Lab<br>
+                Department of Computer Science, Institute of Computer Networking<br>
+                National Chiao Tung University<br>
+            </div>
+            <div class="col-md-5">
+                <br>
+                <div style="text-align:right;">
+                    <a href="http://www.facebook.com/hungyu.chen.cs01g" target="_blank"><img src="facebook.png"></a>
+                    <a href="http://goo.gl/zhehfb" target="_blank"><img src="google+.png"></a>
+                    <a href="http://www.linkedin.com/pub/henry-hung-yu-chen/67/616/9a0" target="_blank"><img src="linkedin.png"></a>
+                    <a href="mailto:soulinlove541@gmail.com" target="_blank"><img src="mail.png"></a>
+                </div>
+            </div>
+        </div>
+    </footer>
+    
+    <script src="/bootstrap.js"></script>
+    <script src="/dygraph-combined.js"></script>
+    <script src="http://www.codehelper.io/api/ips/?js"></script>
+
+    <script src="/browserdetect.js"></script>
+    <script src="/serverdate.js"></script>
+    <script src="/atp-node.js"></script>
+    <script src="/atpui-node.js"></script>
+    <script src="/snake.js"></script>
+</body>
+</html>

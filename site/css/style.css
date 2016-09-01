@@ -1,0 +1,207 @@
+@import url('http://fonts.googleapis.com/css?family=Quando');
+
+html, body {
+  height: 100%;
+}
+  body {
+    background-color: #fff;/*#393937  393937 272822 434340*/
+    padding-top: 70px;
+  }
+
+.wrapper {
+  height: 100%;
+  min-height: 100%;
+  height: auto !important;
+  padding-bottom: 70px;
+}
+
+.list-horizontal ul li {
+  float: left;
+  list-style-type: none;
+}
+.list-horizontal ul li ul {
+  float: none;
+  padding-right: 20px;
+}
+.list-horizontal ul li ul li {
+  float: none;
+  padding-right: 150px;
+}
+
+.anchor {
+  padding-top: 70px;
+  margin-top: -70px;
+}
+
+.legend-title {
+  color: #eeeeee;
+  font-size: 25px;
+  /*background-color: #428bca;
+  border: 1px solid #357ebd;*/
+  background-color: #222222;
+  border: 1px solid #080808;
+}
+
+.legend-heading {
+  color: #fff;
+  /*background-color: #428bca;
+  border: 1px solid #357ebd;*/
+  background-color: #563d7c;
+  border: 1px solid #463265;
+  border-top-left-radius: 8px;
+  border-top-right-radius: 8px;
+  padding-left: 10px;
+}
+
+.hr-tpaas {
+  border-top: 2px solid #dddddd;
+}
+
+.btn-tpaas {
+  width: 50%;
+  display: block;
+  margin: 0 auto;
+}
+
+.panel-heading-highlight {
+  font-size: 1.2em;
+  font-family: "Quando";
+}
+
+.vertical-container {
+    display: table;
+}
+
+.vertical-container > div {
+    display: table-cell;
+    float: none;
+    vertical-align: middle;
+}
+
+@media (min-width: 768px) {
+  .container {
+    width: 650px;
+  }
+  .footer {
+    width: 650px;
+  }
+}
+@media (min-width: 992px) {
+  .container {
+    width: 870px;
+  }
+  .footer {
+    width: 870px;
+  }
+}
+@media (min-width: 1200px) {
+  .container {
+    width: 1070px;
+  }
+  .footer {
+    width: 1070px;
+  }
+}
+
+.footer {
+  margin-right: auto;
+  margin-left: auto;
+  border-top: 1px solid #eeeeee;
+  margin-top: -30px;
+  padding-top: 5px;
+}
+  .footer a > img {
+    width: 40px;
+    height: 40px;
+  }
+  .footer a > img:hover {
+    text-decoration: none;
+    opacity: 0.7;
+  }
+
+/*
+ * Side navigation
+ *
+ * Scrollspy and affixed enhanced navigation to highlight sections and secondary
+ * sections of docs content.
+ */
+/* By default it's not affixed in mobile views, so undo that */
+.bs-sidebar.affix {
+  position: static;
+}
+
+/* First level of nav */
+.bs-sidenav {
+  margin-top: 0px;
+  margin-bottom: 30px;
+  padding-top:    10px;
+  padding-bottom: 10px;
+  text-shadow: 0 1px 0 #fff;
+  background-color: #f7f5fa;
+  border-radius: 5px;
+}
+
+/* All levels of nav */
+.bs-sidebar .nav > li > a {
+  display: block;
+  color: #716b7a;
+  padding: 5px 20px;
+}
+.bs-sidebar .nav > li > a:hover,
+.bs-sidebar .nav > li > a:focus {
+  text-decoration: none;
+  background-color: #e5e3e9;
+  border-right: 1px solid #dbd8e0;
+}
+.bs-sidebar .nav > .active > a,
+.bs-sidebar .nav > .active:hover > a,
+.bs-sidebar .nav > .active:focus > a {
+  font-weight: bold;
+  color: #563d7c;
+  background-color: transparent;
+  border-right: 1px solid #563d7c;
+}
+
+/* Nav: second level (shown on .active) */
+.bs-sidebar .nav .nav {
+  display: none; /* Hide by default, but at >768px, show it */
+  margin-bottom: 8px;
+}
+.bs-sidebar .nav .nav > li > a {
+  padding-top:    3px;
+  padding-bottom: 3px;
+  padding-left: 30px;
+  font-size: 90%;
+}
+
+/* Show and affix the side nav when space allows it */
+@media (min-width: 992px) {
+  .bs-sidebar .nav > .active > ul {
+    display: block;
+  }
+  /* Widen the fixed sidebar */
+  .bs-sidebar.affix,
+  .bs-sidebar.affix-bottom {
+    width: 213px;
+  }
+  .bs-sidebar.affix,
+  .bs-sidebar.affix-top {
+    position: fixed; /* Undo the static from mobile first approach */
+    top: 70px;
+  }
+  .bs-sidebar.affix-bottom {
+    position: absolute; /* Undo the static from mobile first approach */
+  }
+  .bs-sidebar.affix-bottom .bs-sidenav,
+  .bs-sidebar.affix .bs-sidenav {
+    margin-top: 0;
+    margin-bottom: 0;
+  }
+}
+@media (min-width: 1200px) {
+  /* Widen the fixed sidebar again */
+  .bs-sidebar.affix-bottom,
+  .bs-sidebar.affix {
+    /*width: 263px;*/
+  }
+}
