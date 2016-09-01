@@ -1,5 +1,3 @@
-
-
 mongodbdata:
     restart: always
     image: busybox:latest
